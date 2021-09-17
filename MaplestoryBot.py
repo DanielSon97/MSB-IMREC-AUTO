@@ -820,6 +820,8 @@ def runBot():
 	char.initialBuffs()
 	refresh()
 
+	input("HERERHRERHE")
+
 	#run sequence
 	while (True):
 		runSequence()

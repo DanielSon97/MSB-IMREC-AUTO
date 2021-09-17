@@ -1,0 +1,6 @@
+route2range = 2, 29, 36
+route2sequence = release("left"), wait(0.1), hold("right"), wait(0.1), useSkill("Grappling Wire"), wait(0.2), useSkill("Grappling Wire"), wait(0.5)
+route3range = 38, 85, 13
+route3sequence = release("left"), wait(0.1), hold("right"), wait(0.1), jump(), wait(0.2), jump(), wait(0.1), useSkill("Possession), useSkill("Strike Arrow"), wait(0.6)
+route4range = 88, 136, 13
+route4sequence = release("left"), wait(0.1), hold("right"), wait(0.1), jump(), wait(0.2), jump(), wait(0.1), useSkill("Possession), useSkill("Strike Arrow"), wait(0.6)
