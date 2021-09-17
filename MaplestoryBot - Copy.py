@@ -164,7 +164,7 @@ class CharacterData:
 	class Buff:
 		def __init__(self, name, key, cooldown, waitTime, timer):
 			self.name = name
-			self.key = key
+			self.key = key.lower()
 			self.cooldown = cooldown
 			self.waitTime = waitTime
 			self.timer = timer
@@ -205,8 +205,8 @@ class CharacterData:
 
 		#reading general section
 		self.charName = configure.get("general", "name")
-		self.hpKey = configure.get("general", "hpKey")
-		self.mpKey = configure.get("general", "mpKey")
+		self.hpKey = (configure.get("general", "hpKey")).lower()
+		self.mpKey = (configure.get("general", "mpKey")).lower()
 		self.hpThreshold = configure.getint("general", "hpThreshold")
 		self.mpThreshold = configure.getint("general", "mpThreshold")
 		self.jumpKey = configure.get("general", "jumpKey")
@@ -264,7 +264,7 @@ class CharacterData:
 
 		for i in range(self.buffsNum):
 			if(time.perf_counter() > self.buffs[i].timer):
-				wait(1)
+				wait(0.2)
 				release("Left")
 				release("Right")
 				wait(0.2)
@@ -412,6 +412,8 @@ class Rune:
 
 				#try to solve 10 times
 				for i in range(10):
+					if(errorcheck.checkDeath()):
+						return False
 					char.potions.checkPotions()
 					#navigate to rune
 					if (char.ropeLiftExist == "True"):
@@ -420,16 +422,12 @@ class Rune:
 					else:
 						charPos = bot.characterPos()
 						if (charPos[1] == mapdata.platforms[platformID].Y and charPos[0] >= mapdata.platforms[platformID].leftX and charPos[0] <= mapdata.platforms[platformID].rightX):
-							print("SAME PLATFORM")
 							if (moveTo(self.x, mapdata.platforms[platformID].Y)):
-								print("HERE1")
 								press(char.npcKey)
 							else:
-								print("HERE2")
 								return False
 						else:
 							return False
-
 
 					print("Solving rune")
 					wait(0.5)
@@ -492,7 +490,6 @@ class Rune:
 			if (not(pyautogui.locate(self.buffExistsMarker, pyautogui.screenshot(region=(1000, 31, 500, 3))) == None)):
 				line = pyautogui.screenshot(region=(1000, 63, 500, 1))
 				if (not(pyautogui.locate(self.runeCooldownMarker, pyautogui.screenshot(region=(1000, 63, 500, 1))) == None)):
-					print("RUNE ON COOLDOWN")
 					return True
 				x = x - 32
 			else:
@@ -500,47 +497,40 @@ class Rune:
 				x = x - 32
 
 		return False
-		
-
-	###	while(True):
-	###		pyautogui.moveTo(deathFlag[0] + 3, deathFlag[1] + 3, duration = 1)
 
 #creating ErrorCheck class
 class ErrorCheck:
 	def __init__(self):
 		self.prevPos = None
 		self.failCounter = 0
+		self.checkDeathTimer = time.perf_counter() + 60
 
 	#checking each error
 	def checkAllErrors(self):
 		print("CHECKING DEATH")
 		if (not(self.checkDeath())):
-			print("Fail")
 			print("CHECKING DIALOGUE")
 			if (not(self.checkDialogue())):
-				print("Fail")
 				print("CHECKING CEMETERY")
 				if (not(self.checkCemetery())):
-					print("Fail")
 					print("CHECKING OTHER MAP")
 					if (not(self.checkOtherMap())):
-						print("Fail")
 						print("CHECKING ROPE")
 						if (not(self.checkRope())):
-							print("Fail")
 							print("Unsolved Error Detected")
 							return False
+		print("ERROR SOLVED")
 		return True
 
 	#checking death
 	def checkDeath(self):
 		#moving mouse out of the way
-		pyautogui.moveTo(10, 10, duration = 1)
+		pyautogui.moveTo(10, 10, duration = 0.1)
 
 		#check for buff freezer
 		cancelFlag = pyautogui.locate(markers.cancelMarker, pyautogui.screenshot())
 		if (not(cancelFlag == None)):
-			pyautogui.moveTo(cancelFlag[0] + 3, cancelFlag[1] + 3, duration = 1)
+			pyautogui.moveTo(cancelFlag[0] + 3, cancelFlag[1] + 3, duration = 0.2)
 			pyautogui.click()
 			wait(1)
 
@@ -549,10 +539,17 @@ class ErrorCheck:
 		if (deathFlag == None):
 			return False
 		else:
-			pyautogui.moveTo(deathFlag[0] + 3, deathFlag[1] + 3, duration = 1)
+			pyautogui.moveTo(deathFlag[0] + 3, deathFlag[1] + 3, duration = 0.2)
 			pyautogui.click()
 			self.mapChangeCheck()
 			return True
+
+	#timed check death
+	def timedCheckDeath(self):
+		#checking if 1 minute has passed
+		if (self.checkDeathTimer < time.perf_counter()):
+			self.checkDeath()
+			self.checkDeathTimer = time.perf_counter() + 60
 
 	#checking rope
 	def checkRope(self):
@@ -564,7 +561,7 @@ class ErrorCheck:
 				wait(0.1)
 				release("Left")
 				wait(0.1)
-				release("down")
+				release("Down")
 				wait(0.1)
 				hold("Up")
 				wait(5)
@@ -580,7 +577,7 @@ class ErrorCheck:
 		if (dialogueFlag == None):
 			return False
 		else:
-			pyautogui.moveTo(dialogueFlag [0] + 3, dialogueFlag [1] + 3, duration = 1)
+			pyautogui.moveTo(dialogueFlag [0] + 3, dialogueFlag [1] + 3, duration = 0.2)
 			pyautogui.click()
 			wait(1)
 			return True
@@ -602,14 +599,14 @@ class ErrorCheck:
 						print("CEMETERY DETECTED")
 						char.potions.checkPotions()
 						wait(1)
-						pyautogui.moveTo(10, 10, duration = 1)
+						pyautogui.moveTo(10, 10, duration = 0.2)
 						wait(1)
 						press(char.mapKey)
 						wait(1)
 						navPos = pyautogui.locate(markers.navigationMarker, pyautogui.screenshot())
 						if (navPos == None):
 							return False
-						pyautogui.moveTo(mapdata.map_coordX + navPos[0], mapdata.map_coordY + navPos[1], duration = 1)
+						pyautogui.moveTo(mapdata.map_coordX + navPos[0], mapdata.map_coordY + navPos[1], duration = 0.2)
 						pyautogui.click()
 						wait(0.10)
 						pyautogui.click()
@@ -618,7 +615,7 @@ class ErrorCheck:
 						if (okPos == None):
 							return False
 						else:
-							pyautogui.moveTo(okPos[0] + 3, okPos[1] + 3, duration = 1)
+							pyautogui.moveTo(okPos[0] + 3, okPos[1] + 3, duration = 0.2)
 							pyautogui.click()
 							self.mapChangeCheck()
 							wait(2)
@@ -628,6 +625,16 @@ class ErrorCheck:
 							for i in range(len(char.resets)):
 								wait(2)
 								press(char.resets[i].key)
+
+							#get character to jump down back on map
+							charPos = bot.characterPos()
+							section = bot.findSection(charPos)
+							while(section == None):
+								charPos = bot.characterPos()
+								section = bot.findSection(charPos)
+								if (section == None):
+									downjump()
+
 							return True
 
 		return False
@@ -644,12 +651,12 @@ class ErrorCheck:
 		if (not(pixel[0] == rBorder[0]) or not(pixel[1] == rBorder[1]) or not(pixel[2] == rBorder[2]) or not(pixel2[0] == bBorder[0]) or not(pixel2[1] == bBorder[1]) or not(pixel2[2] == bBorder[2])):
 			print("OTHER MAP DETECTED")
 			press(char.mapKey)
-			pyautogui.moveTo(10, 10, duration = 1)
+			pyautogui.moveTo(10, 10, duration = 0.2)
 			wait(1)
 			navPos = pyautogui.locate(markers.navigationMarker, pyautogui.screenshot())
 			if (navPos == None):
 				return False
-			pyautogui.moveTo(mapdata.map_coordX + navPos[0], mapdata.map_coordY + navPos[1], duration = 1)
+			pyautogui.moveTo(mapdata.map_coordX + navPos[0], mapdata.map_coordY + navPos[1], duration = 0.2)
 			pyautogui.click()
 			wait(0.10)
 			pyautogui.click()
@@ -658,7 +665,7 @@ class ErrorCheck:
 			if (okPos == None):
 				return False
 			else:
-				pyautogui.moveTo(okPos[0] + 3, okPos[1] + 3, duration = 1)
+				pyautogui.moveTo(okPos[0] + 3, okPos[1] + 3, duration = 0.2)
 				pyautogui.click()
 				self.mapChangeCheck()
 				wait(2)
@@ -702,26 +709,38 @@ class ErrorCheck:
 		while (True):
 			#check death
 			if (self.checkDeath()):
-				print("Death occurred while changing channel")
 				self.changeChannel()
 				self.checkCemetery()
-				print("Cemetery left after changing channel")
 				return True
 			press(char.changeChannel)
 			wait(1)
 			for i in range(verticalChange):
 				press("Down")
-				wait(0.05)
+				wait(0.01)
 			for i in range(horizontalChange):
 				press("Right")
-				wait(0.05)
+				wait(0.01)
 			buttonPos = pyautogui.locate(markers.changeChannelMarker, pyautogui.screenshot())
 			if (not(buttonPos == None)):
-				pyautogui.moveTo(buttonPos[0] + 3, buttonPos[1] + 3, duration = 1)
+				pyautogui.moveTo(buttonPos[0] + 3, buttonPos[1] + 3, duration = 0.2)
 				pyautogui.click()
 				if (self.mapChangeCheck()):
-					print("Successfully changed channel")
+					#get character to jump down back on map
+					charPos = bot.characterPos()
+					section = bot.findSection(charPos)
+					while(section == None):
+						charPos = bot.characterPos()
+						section = bot.findSection(charPos)
+						print("SECTION IS: " + str(section))
+						if (section == None):
+							downjump()
 					return True
+
+	def mashOutOfEMStun(self):
+		for i in range(20):
+			press("Left")
+			wait(0.05)
+			press("Right")
 
 #creating OtherPlayerCheck class
 class OtherPlayerCheck:
@@ -880,6 +899,9 @@ class Bot:
 		#check other players
 		otherplayercheck.checkOtherPlayer()
 
+		#timed death check
+		errorcheck.timedCheckDeath()
+
 		return
 
 	#function to run a sequence step
@@ -891,6 +913,7 @@ class Bot:
 		if (self.prevPos == charPos):
 			self.movementStuckCount = self.movementStuckCount + 1
 			if (self.movementStuckCount >= 5):
+				errorcheck.mashOutOfEMStun()
 				errorcheck.checkAllErrors()
 		else:
 			self.movementStuckCount = 0
@@ -961,6 +984,29 @@ def hold(key):
 #function to release a key
 def release(key):
 	keyboard.release(key)
+
+#function to down jump
+def downjump():
+	press("right")
+	hold("down")
+	wait(0.05)
+	jump()
+	release("down")
+	wait(0.3)
+
+def turnLeft():
+	release("Right")
+	wait(0.05)
+	hold("Left")
+	wait(0.05)
+	release("Left")
+
+def turnRight():
+	release("Left")
+	wait(0.05)
+	hold("Right")
+	wait(0.05)
+	release("Right")
 
 #function to jump
 def jump():
